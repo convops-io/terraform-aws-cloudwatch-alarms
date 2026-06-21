@@ -10,6 +10,11 @@ variable "auto_discover" {
   type    = bool
   default = false
 }
+variable "filter_tags" {
+  description = "Tag filters for ECS auto-discovery. Example: { Environment = \"prod\" }"
+  type        = map(string)
+  default     = {}
+}
 variable "cpu_threshold" {
   type    = number
   default = 80

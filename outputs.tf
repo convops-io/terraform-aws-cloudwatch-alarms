@@ -80,6 +80,10 @@ output "ec2_network_in_alarm_arns" {
   description = "ARNs of EC2 NetworkIn alarms."
   value       = length(module.ec2) > 0 ? module.ec2[0].network_in_alarm_arns : {}
 }
+output "ec2_system_status_check_alarm_arns" {
+  description = "ARNs of EC2 StatusCheckFailed_System (hardware) alarms."
+  value       = length(module.ec2) > 0 ? module.ec2[0].system_status_check_alarm_arns : {}
+}
 
 # ── DynamoDB ──────────────────────────────────────────────────────────────────
 

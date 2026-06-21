@@ -1,18 +1,25 @@
-data "aws_ecs_cluster" "this" {
-  count        = var.auto_discover && var.cluster_name != "" ? 1 : 0
-  cluster_name = var.cluster_name
-}
+# Auto-discovery: find ECS services via Resource Groups Tagging API,
+# filtered to the specified cluster by matching its name in the service ARN.
+data "aws_resourcegroupstaggingapi_resources" "ecs_services" {
+  count                 = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? 1 : 0
+  resource_type_filters = ["ecs:service"]
 
-data "aws_ecs_services" "all" {
-  count       = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? 1 : 0
-  cluster_arn = data.aws_ecs_cluster.this[0].arn
+  dynamic "tag_filter" {
+    for_each = var.filter_tags
+    content {
+      key    = tag_filter.key
+      values = [tag_filter.value]
+    }
+  }
 }
 
 locals {
-  # Extract service name from ARN: handles both old (arn:.../service-name)
-  # and new (arn:.../cluster-name/service-name) ARN formats.
+  # Filter returned ARNs to only services in the specified cluster, then
+  # extract the service name (last path segment of the ARN).
   discovered_services = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? [
-    for arn in data.aws_ecs_services.all[0].service_arns : regex("[^/]+$", arn)
+    for arn in data.aws_resourcegroupstaggingapi_resources.ecs_services[0].resource_tag_mapping_list[*].resource_arn :
+    regex("[^/]+$", arn)
+    if can(regex("/${var.cluster_name}/", arn))
   ] : []
   service_names = length(var.service_names) > 0 ? var.service_names : local.discovered_services
 }
