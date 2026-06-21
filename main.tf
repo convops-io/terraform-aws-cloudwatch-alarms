@@ -6,7 +6,7 @@ locals {
 
 module "rds" {
   source = "./modules/rds"
-  count  = length(var.rds_instance_identifiers) > 0 || (var.auto_discover && length(var.rds_filter_tags) >= 0) ? 1 : 0
+  count  = length(var.rds_instance_identifiers) > 0 || var.auto_discover ? 1 : 0
 
   instance_identifiers          = var.rds_instance_identifiers
   auto_discover                 = var.auto_discover
@@ -53,6 +53,7 @@ module "ecs" {
   cpu_threshold             = var.ecs_cpu_threshold
   memory_threshold          = var.ecs_memory_threshold
   running_task_min_count    = var.ecs_running_task_min_count
+  filter_tags               = var.ecs_filter_tags
   alarm_actions             = var.alarm_actions
   ok_actions                = var.ok_actions
   insufficient_data_actions = var.insufficient_data_actions
@@ -64,7 +65,7 @@ module "ecs" {
 
 module "alb" {
   source = "./modules/alb"
-  count  = length(var.alb_arn_suffixes) > 0 || (var.auto_discover && length(var.alb_filter_tags) >= 0) ? 1 : 0
+  count  = length(var.alb_arn_suffixes) > 0 || var.auto_discover ? 1 : 0
 
   arn_suffixes              = var.alb_arn_suffixes
   auto_discover             = var.auto_discover
@@ -83,7 +84,7 @@ module "alb" {
 
 module "ec2" {
   source = "./modules/ec2"
-  count  = length(var.ec2_instance_ids) > 0 || (var.auto_discover && length(var.ec2_filter_tags) >= 0) ? 1 : 0
+  count  = length(var.ec2_instance_ids) > 0 || var.auto_discover ? 1 : 0
 
   instance_ids              = var.ec2_instance_ids
   auto_discover             = var.auto_discover

@@ -16,7 +16,8 @@ provider "aws" {
 # No infrastructure change — description text only. Completely opt-in.
 
 module "cloudwatch_alarms" {
-  source = "convops-io/cloudwatch-alarms/aws"
+  source  = "convops-io/cloudwatch-alarms/aws"
+  version = "~> 0.1"
 
   rds_instance_identifiers = ["prod-db"]
   lambda_function_names    = ["api-handler"]

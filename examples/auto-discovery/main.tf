@@ -8,7 +8,7 @@ provider "aws" {
 #   RDS    ✅  Full support — discovers all RDS instances
 #   EC2    ✅  Full support — discovers running instances, filter by tags
 #   ALB    ✅  Full support — discovers all ALBs, filter by tags
-#   ECS    ⚠️  Cluster discovery supported; service names must be provided manually
+#   ECS    ✅  Services discovered via Resource Groups Tagging API, filtered by cluster name
 #   Lambda ⚠️  No native list data source — use static config for Lambda
 #   DynamoDB ⚠️  No native list data source — use static config for DynamoDB
 #
@@ -16,6 +16,7 @@ provider "aws" {
 
 module "cloudwatch_alarms" {
   source        = "convops-io/cloudwatch-alarms/aws"
+  version       = "~> 0.1"
   auto_discover = true
 
   # Filter to only discover production resources (recommended — avoid alarming on dev/staging)

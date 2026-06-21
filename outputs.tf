@@ -91,6 +91,10 @@ output "dynamodb_throttle_alarm_arns" {
   description = "ARNs of DynamoDB ThrottledRequests alarms."
   value       = length(module.dynamodb) > 0 ? module.dynamodb[0].throttle_alarm_arns : {}
 }
+output "dynamodb_consumed_read_capacity_alarm_arns" {
+  description = "ARNs of DynamoDB ConsumedReadCapacityUnits alarms. Empty if dynamodb_consumed_read_capacity_threshold is 0 (default)."
+  value       = length(module.dynamodb) > 0 ? module.dynamodb[0].consumed_read_capacity_alarm_arns : {}
+}
 output "dynamodb_system_errors_alarm_arns" {
   description = "ARNs of DynamoDB SystemErrors alarms."
   value       = length(module.dynamodb) > 0 ? module.dynamodb[0].system_errors_alarm_arns : {}

@@ -112,10 +112,10 @@ module "cloudwatch_alarms" {
 Automatically discovers resources in your AWS account. Use tag filters to scope to production only.
 
 > ⚠️ **Auto-discovery support varies by service:**
-> - RDS ✅ Full support
+> - RDS ✅ Full support (filter by tags)
 > - EC2 ✅ Full support (filter by tags)
 > - ALB ✅ Full support (filter by tags)
-> - ECS ⚠️ Cluster discovery only — service names must still be provided
+> - ECS ✅ Services discovered via Resource Groups Tagging API, filtered by cluster name and optional tags
 > - Lambda ⚠️ No native list data source — use static config
 > - DynamoDB ⚠️ No native list data source — use static config
 
@@ -190,7 +190,17 @@ module "cloudwatch_alarms" {
 
 ## IAM permissions required
 
-The AWS credentials used by Terraform need `cloudwatch:PutMetricAlarm` and `cloudwatch:DeleteAlarms`. For auto-discovery, additional read permissions are needed per service (`rds:DescribeDBInstances`, `ec2:DescribeInstances`, `elasticloadbalancing:DescribeLoadBalancers`, `ecs:DescribeClusters`).
+Always required:
+- `cloudwatch:PutMetricAlarm`
+- `cloudwatch:DeleteAlarms`
+- `cloudwatch:DescribeAlarms` (Terraform refresh)
+
+Required for auto-discovery (`auto_discover = true`):
+- `tag:GetResources` — ECS service discovery via Resource Groups Tagging API
+- `rds:DescribeDBInstances` — RDS instance discovery
+- `ec2:DescribeInstances` — EC2 instance discovery
+- `elasticloadbalancing:DescribeLoadBalancers` — ALB discovery
+- `ecs:DescribeClusters` — ECS cluster lookup
 
 ---
 

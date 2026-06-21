@@ -6,7 +6,8 @@ provider "aws" {
 # Only include the services you actually use — omit the rest.
 
 module "cloudwatch_alarms" {
-  source = "convops-io/cloudwatch-alarms/aws"
+  source  = "convops-io/cloudwatch-alarms/aws"
+  version = "~> 0.1"
 
   # ── RDS ──────────────────────────────────────────────────────────────────
   rds_instance_identifiers  = ["prod-db", "prod-replica"]

@@ -1,7 +1,7 @@
 # ── Mode ──────────────────────────────────────────────────────────────────────
 
 variable "auto_discover" {
-  description = "Automatically discover resources in your AWS account using data sources. Not all services fully supported — ECS service discovery requires cluster name, Lambda and DynamoDB require tag-based discovery. See README for details."
+  description = "Automatically discover resources in your AWS account using data sources. RDS, EC2, and ALB are fully supported with optional tag filters. ECS services are discovered via the Resource Groups Tagging API filtered by cluster name. Lambda and DynamoDB require static config — no list data source exists for them."
   type        = bool
   default     = false
 }
@@ -71,9 +71,15 @@ variable "alb_filter_tags" {
 }
 
 variable "ecs_auto_discover_cluster_name" {
-  description = "ECS cluster name for auto-discovery. Required when auto_discover = true and you want ECS alarms. Service-level discovery within the cluster is limited — see README."
+  description = "ECS cluster name for auto-discovery. Required when auto_discover = true and you want ECS alarms. Services are discovered via the Resource Groups Tagging API filtered to this cluster name."
   type        = string
   default     = ""
+}
+
+variable "ecs_filter_tags" {
+  description = "Tag filters for ECS auto-discovery. Narrows which services are discovered within the cluster. Example: { Environment = \"prod\" }"
+  type        = map(string)
+  default     = {}
 }
 
 # ── Alarm actions ─────────────────────────────────────────────────────────────
@@ -110,6 +116,10 @@ variable "rds_cpu_threshold" {
   description = "RDS CPUUtilization alarm threshold (percent). Alarm fires when CPU exceeds this for 3 consecutive 5-minute periods."
   type        = number
   default     = 80
+  validation {
+    condition     = var.rds_cpu_threshold > 0 && var.rds_cpu_threshold <= 100
+    error_message = "rds_cpu_threshold must be between 1 and 100."
+  }
 }
 
 variable "rds_connections_threshold" {
@@ -148,6 +158,10 @@ variable "lambda_duration_percent_threshold" {
   description = "Lambda Duration alarm threshold as a percentage of the function timeout. Default 80 — alarm fires when p99 duration exceeds 80% of timeout."
   type        = number
   default     = 80
+  validation {
+    condition     = var.lambda_duration_percent_threshold > 0 && var.lambda_duration_percent_threshold <= 100
+    error_message = "lambda_duration_percent_threshold must be between 1 and 100."
+  }
 }
 
 variable "lambda_concurrent_executions_threshold" {
@@ -168,12 +182,20 @@ variable "ecs_cpu_threshold" {
   description = "ECS CPUUtilization alarm threshold (percent). Default 80."
   type        = number
   default     = 80
+  validation {
+    condition     = var.ecs_cpu_threshold > 0 && var.ecs_cpu_threshold <= 100
+    error_message = "ecs_cpu_threshold must be between 1 and 100."
+  }
 }
 
 variable "ecs_memory_threshold" {
   description = "ECS MemoryUtilization alarm threshold (percent). Default 85."
   type        = number
   default     = 85
+  validation {
+    condition     = var.ecs_memory_threshold > 0 && var.ecs_memory_threshold <= 100
+    error_message = "ecs_memory_threshold must be between 1 and 100."
+  }
 }
 
 variable "ecs_running_task_min_count" {
@@ -194,6 +216,10 @@ variable "alb_response_time_threshold" {
   description = "ALB TargetResponseTime p99 alarm threshold (seconds). Default 2."
   type        = number
   default     = 2
+  validation {
+    condition     = var.alb_response_time_threshold > 0
+    error_message = "alb_response_time_threshold must be greater than 0."
+  }
 }
 
 variable "alb_unhealthy_host_threshold" {
@@ -208,6 +234,10 @@ variable "ec2_cpu_threshold" {
   description = "EC2 CPUUtilization alarm threshold (percent). Default 85."
   type        = number
   default     = 85
+  validation {
+    condition     = var.ec2_cpu_threshold > 0 && var.ec2_cpu_threshold <= 100
+    error_message = "ec2_cpu_threshold must be between 1 and 100."
+  }
 }
 
 variable "ec2_network_in_min_threshold" {
@@ -228,6 +258,10 @@ variable "dynamodb_consumed_read_capacity_threshold" {
   description = "DynamoDB ConsumedReadCapacityUnits alarm threshold (count per minute). Override with 80% of your provisioned RCU. Default 0 disables this alarm — you must set it for your table."
   type        = number
   default     = 0
+  validation {
+    condition     = var.dynamodb_consumed_read_capacity_threshold >= 0
+    error_message = "dynamodb_consumed_read_capacity_threshold must be 0 (disabled) or a positive number."
+  }
 }
 
 # ── Tags ──────────────────────────────────────────────────────────────────────
