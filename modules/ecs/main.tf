@@ -1,12 +1,20 @@
-locals {
-  # Auto-discovery: list services in the cluster if auto_discover=true and no explicit services given
-  discovered_services = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? tolist(data.aws_ecs_cluster.this[0].service_connect_defaults[*].namespace) : []
-  service_names       = length(var.service_names) > 0 ? var.service_names : local.discovered_services
-}
-
 data "aws_ecs_cluster" "this" {
   count        = var.auto_discover && var.cluster_name != "" ? 1 : 0
   cluster_name = var.cluster_name
+}
+
+data "aws_ecs_services" "all" {
+  count       = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? 1 : 0
+  cluster_arn = data.aws_ecs_cluster.this[0].arn
+}
+
+locals {
+  # Extract service name from ARN: handles both old (arn:.../service-name)
+  # and new (arn:.../cluster-name/service-name) ARN formats.
+  discovered_services = var.auto_discover && length(var.service_names) == 0 && var.cluster_name != "" ? [
+    for arn in data.aws_ecs_services.all[0].service_arns : regex("[^/]+$", arn)
+  ] : []
+  service_names = length(var.service_names) > 0 ? var.service_names : local.discovered_services
 }
 
 # ── CPU Utilization ───────────────────────────────────────────────────────────
